@@ -34,13 +34,16 @@ class EstudianteController extends Controller
             'email' => 'required|string|email|max:255|unique:estudiantes'
         ]);
     */
+        //Validate if 'correo' is not repeated
+        //Validate data, avoid a mass asignmente like this use, key-value pairs instead.
         $estudiante = Estudiante::create($request->all());
     
         return response()->json(
             ["status" => true,
-            "message"=> "Se guardo exitosamente",
-            "data"=> $estudiante], 201
-        );
+            "message"=> "Estudiante registered",
+            "data"=> [
+                'user_id' => $estudiante->id
+            ]], 201);
     }
 
     /**

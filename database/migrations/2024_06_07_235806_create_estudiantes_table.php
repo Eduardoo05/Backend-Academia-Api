@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->string('nombres');
             $table->string('apellidos');
-            $table->string('correo');
+            $table->string('correo')->unique();
+            $table->boolean('is_questioned')->default(false);
+            $table->boolean('is_tested')->default(false);
             $table->timestamps();
         });
     }
