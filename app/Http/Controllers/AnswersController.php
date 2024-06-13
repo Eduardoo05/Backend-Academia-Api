@@ -38,8 +38,31 @@ class AnswersController extends Controller
             ], 404);
         }
 
-        $data = $request->all();
-        unset($data['user_id']);
+        if (!$student->is_questioned) {
+            return response()->json([
+                'status' => false,
+                'message' => "No questions have been submitted for this Student",
+                'data' => null
+            ], 403);
+        }
+
+        if ($student->is_tested) {
+            return response()->json([
+                'status' => false,
+                'message' => "This Student has already been tested, no more tries allowed",
+                'data' => null
+            ], 403);
+        }
+
+        if (!isset($request->answers)) {
+            return response()->json([
+                'status' => false,
+                'message' => "answers not found in request",
+                'data' => null
+            ], 400);
+        }
+        
+        $data = $request->answers;
 
         if (count($data) > 5 || count($data) === 0) {
             return response()->json([
@@ -58,6 +81,9 @@ class AnswersController extends Controller
             $answers->option_id = $value;
             $answers->save();
         }
+
+        $student->is_tested = true;
+        $student->save();
 
         //Now perform functions that mark students and send emails.
 
