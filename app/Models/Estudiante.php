@@ -11,8 +11,6 @@ class Estudiante extends Model
     protected $fillable = [
         'nombres',
         'apellidos',
-        'correo',
-        'is_questioned',
-        'is_tested'
+        'correo'
     ];
 }
