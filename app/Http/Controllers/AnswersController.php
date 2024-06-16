@@ -7,6 +7,8 @@ use App\Models\Estudiante;
 use App\Models\EstudianteQuestions;
 use App\Models\Options;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Results;
 
 class AnswersController extends Controller
 {
@@ -113,7 +115,8 @@ class AnswersController extends Controller
         ->where('options.is_correct', '=', true)->get();
 
         $mark = count($correct_rows) * 2;
-    
+        
+        Mail::to($student->correo)->send(new Results($mark, $student->nombres));
         return response()->json([
             'status' => true,
             'message' => "Test has been sent and graded, check your email for information",
