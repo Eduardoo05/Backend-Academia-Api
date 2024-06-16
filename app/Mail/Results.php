@@ -27,8 +27,7 @@ class Results extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Kodigo Academy Results',
-            from: 'kodigo_academy@jacubiam.xyz'
+            subject: 'Kodigo Academy Results'
         );
     }
 
