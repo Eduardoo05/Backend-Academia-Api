@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Answers;
 use App\Models\Estudiante;
+use App\Models\EstudianteQuestions;
+use App\Models\Options;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Results;
 
 class AnswersController extends Controller
 {
@@ -61,9 +65,11 @@ class AnswersController extends Controller
                 'data' => null
             ], 400);
         }
-        
+
         $data = $request->answers;
 
+        /*This validation is 'unnecessary', we could accept empty arrays and grade them as 0, 
+        and only grade the first 5 given answers (discussion)*/
         if (count($data) > 5 || count($data) === 0) {
             return response()->json([
                 'status' => false,
@@ -74,8 +80,26 @@ class AnswersController extends Controller
 
         /* Here goes a 'huge' validation to see if the answers given by the client 
         match those sent by the server, provided by EstudianteQuestions table */
+        $student_questions = EstudianteQuestions::where('id', '=', $request->user_id)->get();
+        $answered_questions = Options::whereIn('option_id', $request->answers)->get();
 
-        foreach ($data as $value) {
+        $match = [];
+        foreach ($student_questions as $question) {
+            $ite = 0;
+            foreach ($answered_questions as $answer) {
+                if ($question['question_id'] === $answer['question_id']) {
+                    $ite++;
+                    if ($ite > 1) {
+                        array_pop($match);
+                        break;
+                    } else {
+                        $match[] = $answer['option_id'];
+                    }
+                }
+            }
+        }
+
+        foreach ($match as $value) {
             $answers = new Answers();
             $answers->id = $request->user_id;
             $answers->option_id = $value;
@@ -86,7 +110,13 @@ class AnswersController extends Controller
         $student->save();
 
         //Now perform functions that mark students and send emails.
+        $correct_rows = Answers::join('options', 'answers.option_id', '=', 'options.option_id')
+        ->where('answers.id', '=', $request->user_id)
+        ->where('options.is_correct', '=', true)->get();
 
+        $mark = count($correct_rows) * 2;
+        
+        Mail::to($student->correo)->send(new Results($mark, $student->nombres));
         return response()->json([
             'status' => true,
             'message' => "Test has been sent and graded, check your email for information",
